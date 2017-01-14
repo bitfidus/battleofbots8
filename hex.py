@@ -92,9 +92,13 @@ class Board(object):
     @staticmethod
     def jumping_moves(coor):
         x, y = coor
+        yparity = (x & 1)
+        rev_yparity = 0 if (x & 1) else 1
         l = [
-            (x - 1, y - 2), (x - 2, y), (x - 1, y + 2),
-            (x + 1, y - 2), (x + 2, y), (x + 1, y + 2),
+           #             (x - 2, y - 1), (x - 2, y + 1),
+           (x - 1, y - 2), (x - 2, y), (x - 1, y + 2),
+           (x + 1, y - 2), (x + 2, y), (x + 1, y + 2),
+           #           (x + 2, y - 1), (x + 2, y + 1),
         ]
         return [(coor, item) for item in l if Board.valid(item)]
 
@@ -124,18 +128,22 @@ def play(turn, board, whoami, deep=0):
     #     return (0, choice(spreading))
     points = list()
     # spreading = [((4, 6), (3, 6))]
+    # spreading = []
     for move in spreading:
         b = Board.copy(board)
         b.spreading(move)
         m = b.eval(whoami)
+        # print '+' * (deep + 1), m, move
         m1 = play(turn + 1, b, other_player, deep + 1)
         if m1 is not None:
             m -= m1[0]
         points.append((m, move))
+    # jumping = [((4, 1), (5, 3))]
     for move in jumping:
         b = Board.copy(board)
         b.jumping(move)
         m = b.eval(whoami)
+        # print '*' * (deep + 1), m, move
         m1 = play(turn + 1, b, other_player, deep + 1)
         if m1 is not None:
             m -= m1[0]
@@ -143,7 +151,7 @@ def play(turn, board, whoami, deep=0):
 
         # points.append((b.eval(whoami), move))
     if not points:
-        return
+        return (-999, None)
     max_move = max(points, key=lambda x: x[0])
     # import pprint
     # pprint.pprint(points)
@@ -157,6 +165,7 @@ def main():
     turn = int(lines[-2])
     whoami = lines[-1]
     move = play(turn, b, whoami)[1]
+    print [x[1] for x in Board.jumping_moves((2, 2))]
     print ' '.join(str(x) for x in move[0])
     print ' '.join(str(x) for x in move[1])
 
