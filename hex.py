@@ -100,6 +100,24 @@ class Board(object):
            (x + 1, y - 2), (x + 2, y), (x + 1, y + 2),
            #           (x + 2, y - 1), (x + 2, y + 1),
         ]
+        l = [
+                        (x - 2, y),
+                                   (x - 2 + rev_yparity, y + 1),
+                                                 (x, y + 2),
+                                            (x + 2 - rev_yparity, y + 1),
+                        (x + 2, y),
+
+                    (x + 2 - rev_yparity, y - 1),
+                (x + 1, y - 2),
+
+                (x, y - 2),
+
+                (x - 1, y - 2),
+
+                (x - 2 + rev_yparity, y - 1),
+
+
+        ]
         return [(coor, item) for item in l if Board.valid(item)]
 
 
@@ -151,6 +169,7 @@ def play(turn, board, whoami, deep=0):
 
         # points.append((b.eval(whoami), move))
     if not points:
+        # No tiene movimientos, peor puntuacion
         return (-999, None)
     max_move = max(points, key=lambda x: x[0])
     # import pprint
@@ -165,7 +184,7 @@ def main():
     turn = int(lines[-2])
     whoami = lines[-1]
     move = play(turn, b, whoami)[1]
-    print [x[1] for x in Board.jumping_moves((2, 2))]
+    # print [x[1] for x in Board.jumping_moves((2, 2))]
     print ' '.join(str(x) for x in move[0])
     print ' '.join(str(x) for x in move[1])
 
