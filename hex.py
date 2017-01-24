@@ -1,6 +1,7 @@
 import fileinput
 from collections import defaultdict
 from random import choice
+import time
 
 
 class Board(object):
@@ -92,8 +93,8 @@ class Board(object):
     @staticmethod
     def jumping_moves(coor):
         x, y = coor
-        yparity = (x & 1)
-        rev_yparity = 0 if (x & 1) else 1
+        yparity = (y & 1)
+        rev_yparity = 0 if (y & 1) else 1
         l = [
            #             (x - 2, y - 1), (x - 2, y + 1),
            (x - 1, y - 2), (x - 2, y), (x - 1, y + 2),
@@ -101,20 +102,18 @@ class Board(object):
            #           (x + 2, y - 1), (x + 2, y + 1),
         ]
         l = [
-                        (x - 2, y),
-                                   (x - 2 + rev_yparity, y + 1),
-                                                 (x, y + 2),
-                                            (x + 2 - rev_yparity, y + 1),
-                        (x + 2, y),
-
-                    (x + 2 - rev_yparity, y - 1),
-                (x + 1, y - 2),
-
-                (x, y - 2),
-
-                (x - 1, y - 2),
-
-                (x - 2 + rev_yparity, y - 1),
+            (x - 2, y),
+            (x - 2 + yparity, y + 1),
+            (x - 1, y + 2),
+            (x, y + 2),
+            (x + 1, y + 2),
+            (x + 2 - rev_yparity, y + 1),
+            (x + 2, y),
+            (x + 2 - rev_yparity, y - 1),
+            (x + 1, y - 2),
+            (x, y - 2),
+            (x - 1, y - 2),
+            (x - 2 + yparity, y - 1)
 
 
         ]
@@ -135,15 +134,21 @@ class Board(object):
             [x for x in jumping if x[1] not in self.occupied]
         )
 
-MAX_DEEP = 1
+MAX_DEEP = 10
+TIME_LIMIT = 3
 
-def play(turn, board, whoami, deep=0):
+def play(turn, board, whoami, deep=0, t=None):
     other_player = '1' if whoami == '2' else '2'
     if deep > MAX_DEEP:
         return
+    if not t:
+        t = time.time()
+    elif time.time() - t > TIME_LIMIT:
+        # print 'time', deep, time.time() - t
+        return
     spreading, jumping = board.get_valid_moves(whoami)
-    # if turn < 8:
-    #     return (0, choice(spreading))
+    if turn < 6:
+        jumping = []
     points = list()
     # spreading = [((4, 6), (3, 6))]
     # spreading = []
@@ -152,7 +157,7 @@ def play(turn, board, whoami, deep=0):
         b.spreading(move)
         m = b.eval(whoami)
         # print '+' * (deep + 1), m, move
-        m1 = play(turn + 1, b, other_player, deep + 1)
+        m1 = play(turn + 1, b, other_player, deep + 1, t)
         if m1 is not None:
             m -= m1[0]
         points.append((m, move))
@@ -162,7 +167,7 @@ def play(turn, board, whoami, deep=0):
         b.jumping(move)
         m = b.eval(whoami)
         # print '*' * (deep + 1), m, move
-        m1 = play(turn + 1, b, other_player, deep + 1)
+        m1 = play(turn + 1, b, other_player, deep + 1, t)
         if m1 is not None:
             m -= m1[0]
         points.append((m, move))
@@ -171,6 +176,8 @@ def play(turn, board, whoami, deep=0):
     if not points:
         # No tiene movimientos, peor puntuacion
         return (-999, None)
+    # if deep == 0:
+    #     print sorted(points, key=lambda x: x[0], reverse=True)
     max_move = max(points, key=lambda x: x[0])
     # import pprint
     # pprint.pprint(points)
@@ -183,8 +190,12 @@ def main():
     b = Board(lines)
     turn = int(lines[-2])
     whoami = lines[-1]
-    move = play(turn, b, whoami)[1]
     # print [x[1] for x in Board.jumping_moves((2, 2))]
+    # print [x[1] for x in Board.jumping_moves((2, 3))]
+    # print [x[1] for x in Board.jumping_moves((2, 5))]
+    # return
+    move = play(turn, b, whoami)[1]
+
     print ' '.join(str(x) for x in move[0])
     print ' '.join(str(x) for x in move[1])
 
